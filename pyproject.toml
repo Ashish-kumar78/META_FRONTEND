@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "antariksh-rl"
-version = "1.0.0"
+version = "0.2.0"
 description = "Satellite Scheduling RL Environment for OpenEnv"
 authors = [
     { name = "Ashish Kumar" }
@@ -13,9 +13,13 @@ dependencies = [
     "fastapi",
     "uvicorn",
     "python-dotenv",
-    "openai"
+    "openai",
+    "openenv-core>=0.2.0"
 ]
 requires-python = ">=3.10"
 
-[project.optional-dependencies]
-dev = ["pytest"]
+[project.scripts]
+start = "server.app:app"
+
+[tool.setuptools]
+packages = ["server"]
