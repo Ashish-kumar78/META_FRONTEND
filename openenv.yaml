@@ -1,0 +1,128 @@
+name: satellite-scheduling-rl
+version: "1.0.0"
+description: >
+  A reinforcement learning environment where agents manage satellite fleets
+  under real-world constraints: disasters, resource depletion, weather events,
+  and role-based scheduling. Simulates real-world satellite operations used by
+  space agencies for disaster response and Earth observation.
+
+tags:
+  - openenv
+  - scheduling
+  - disaster-response
+  - satellite
+  - resource-optimization
+  - real-world
+
+author: "Ashish Kumar"
+license: MIT
+
+environment:
+  class: SatelliteSchedulingEnv
+  module: backend.env
+  language: python
+  version: "3.11"
+
+tasks:
+  - id: easy
+    name: "Basic Task Completion"
+    description: >
+      Agent manages 5 satellites and 10 tasks. No disasters or chaos events.
+      Goal: complete as many tasks as possible within 30 steps.
+    difficulty: easy
+    max_steps: 30
+    score_formula: "tasks_completed / total_tasks"
+    score_range: [0.0, 1.0]
+
+  - id: medium
+    name: "Resource-Aware Scheduling"
+    description: >
+      Agent manages 7 satellites and 20 tasks with occasional weather events.
+      Must balance task completion, battery efficiency, and storage management.
+    difficulty: medium
+    max_steps: 50
+    score_formula: "0.5 * task_completion + 0.3 * battery_efficiency + 0.2 * storage_efficiency"
+    score_range: [0.0, 1.0]
+
+  - id: hard
+    name: "Disaster Response Coordination"
+    description: >
+      Agent manages 10 satellites and 35 tasks under active disaster conditions.
+      Must prioritize disaster-related tasks while maintaining resource efficiency
+      and chaos resilience (solar flares, comms overload).
+    difficulty: hard
+    max_steps: 80
+    score_formula: "0.5 * disaster_coverage + 0.3 * task_completion + 0.2 * resource_efficiency"
+    score_range: [0.0, 1.0]
+
+observation_space:
+  satellites:
+    type: array
+    items:
+      id: string
+      battery: float  # 0.0–100.0
+      position: [float, float]  # [lon, lat]
+      role: enum [planner, executor]
+      active: boolean
+      tasks_completed: integer
+      storage_used: float  # 0.0–100.0
+  tasks:
+    type: array
+    items:
+      id: string
+      location: [float, float]
+      priority: enum [low, medium, high, critical]
+      battery_cost: float
+      storage_cost: float
+      assigned_to: string | null
+      completed: boolean
+      disaster_related: boolean
+  weather: enum [clear, storm, solar_flare, overload]
+  disaster_active: boolean
+  disaster_sector: [float, float] | null
+  step: integer
+  max_steps: integer
+  total_reward: float
+
+action_space:
+  type: enum
+  values:
+    - assign_task:
+        satellite_id: string
+        task_id: string
+    - change_role:
+        satellite_id: string
+    - move_satellite:
+        satellite_id: string
+        direction: enum [N, S, E, W]
+    - skip: {}
+
+reward_structure:
+  low_priority_task: +0.5
+  medium_priority_task: +1.0
+  high_priority_task: +1.5
+  critical_task: +2.5
+  disaster_task_bonus: +2.0
+  invalid_action_penalty: -0.2
+  skip_penalty: -0.05
+  low_battery_assignment_penalty: -0.3
+  storage_overflow_penalty: -0.25
+
+baseline_scores:
+  greedy_agent:
+    easy: 1.0
+    medium: 0.87
+    hard: 0.66
+
+api:
+  reset: "POST /reset"
+  step: "POST /step"
+  state: "GET /state/{session_id}"
+  grade: "POST /grade/{session_id}"
+  validate: "GET /validate"
+  leaderboard: "GET /leaderboard"
+
+docker:
+  build: "docker build -t satellite-env ."
+  run: "docker run -p 8000:8000 satellite-env"
+  port: 8000
