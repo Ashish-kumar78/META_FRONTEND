@@ -1,4 +1,6 @@
 name: satellite-scheduling-rl
+space_url: https://huggingface.co/spaces/AshishKumar78/antariksh-dashboard
+inference_script: inference.py
 version: "1.0.0"
 description: >
   A reinforcement learning environment where agents manage satellite fleets
@@ -124,5 +126,11 @@ api:
 
 docker:
   build: "docker build -t satellite-env ."
-  run: "docker run -p 8000:8000 satellite-env"
-  port: 8000
+  run: "docker run -p 7860:7860 satellite-env"
+  port: 7860
+
+env_vars:
+  API_BASE_URL: "The API endpoint for the LLM (e.g. https://api.openai.com/v1)"
+  MODEL_NAME: "The model identifier to use for inference (e.g. gpt-3.5-turbo)"
+  HF_TOKEN: "Your Hugging Face / OpenAI API key"
+  BASELINE_SEED: "Random seed for reproducibility (default: 42)"
