@@ -102,7 +102,7 @@ export function Satellites({ selectedSatellite, setSelectedSatellite, onSatellit
   React.useEffect(() => {
     const fetchRealData = async () => {
       try {
-        const response = await fetch(`${BACKEND_URL}/real-satellites`);
+        const response = await fetch(`${BACKEND_URL}/api/real-satellites`);
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
@@ -113,20 +113,8 @@ export function Satellites({ selectedSatellite, setSelectedSatellite, onSatellit
         setSatelliteData(satellites);
         positionsRef.current = satellites.map(() => new THREE.Vector3());
       } catch (error) {
-        console.warn('Failed to fetch real satellites, falling back to mock data:', error);
-        // Fallback to mock data
-        try {
-          const mockResponse = await fetch('/satellites.json');
-          if (!mockResponse.ok) {
-            throw new Error('Mock data not available');
-          }
-          const mockData = await mockResponse.json();
-          setSatelliteData(mockData);
-          positionsRef.current = mockData.map(() => new THREE.Vector3());
-        } catch (mockError) {
-          console.error('Failed to load both real and mock data:', mockError);
-          setSatelliteData([]);
-        }
+        console.warn('Failed to fetch real satellites:', error);
+        setSatelliteData([]);
       }
     };
     

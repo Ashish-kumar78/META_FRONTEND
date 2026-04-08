@@ -187,7 +187,7 @@ def run_demo(difficulty: str = "easy", seed: int = 42):
     }
 
 
-@app.get("/real-satellites")
+@app.get("/api/real-satellites")
 async def get_real_satellites():
     """
     Fetch real satellite positions + disasters + weather from live APIs.
