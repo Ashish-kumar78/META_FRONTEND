@@ -257,8 +257,28 @@ async def fetch_space_weather() -> Dict[str, Any]:
     return {"condition": "clear", "label": "NOMINAL CONDITIONS", "kp_index": 0.0, "source": "fallback", "timestamp": ""}
 
 
-_LIVE_CACHE = {"data": None, "time": 0, "fetching": False}
+# Pre-seed cache with offline approximations for instant UI rendering
+def _generate_offline_cache():
+    from backend.satellite_specs import get_satellite_specs
+    t = datetime.now(timezone.utc).timestamp()
+    positions = []
+    for sat in REAL_SATELLITES:
+        specs = get_satellite_specs(sat["id"])
+        lon, lat = _sgp4_approx(sat["norad"], t)
+        positions.append({
+            "id": sat["id"], "name": specs["name"], "position": [lon, lat],
+            "altitude_km": 500, "velocity_kmh": 27000, "role": specs["rl_role"],
+            "purpose": specs["purpose"], "battery": 100, "storage_used": 0,
+            "solar_panels_kw": specs["solar_panels_kw"], "active": True, "tasks_completed": 0
+        })
+    return {
+        "satellites": positions,
+        "disasters": [{"id": "SYNC", "title": "Connecting to EONET...", "category": "unknown", "weather_type": "clear", "lon": 0, "lat": 0, "date": "", "link": ""}],
+        "weather": {"condition": "clear", "label": "SYNCHRONIZING TELEMETRY..."},
+        "fetched_at": datetime.now(timezone.utc).isoformat()
+    }
 
+_LIVE_CACHE = {"data": _generate_offline_cache(), "time": 0, "fetching": False}
 async def _bg_fetch():
     try:
         sats, disasters, weather = await asyncio.gather(
@@ -280,12 +300,7 @@ async def fetch_all_real_data() -> Dict[str, Any]:
     """Fetch all real-world data safely with background caching."""
     now = datetime.now(timezone.utc).timestamp()
     
-    if _LIVE_CACHE["data"] is None and not _LIVE_CACHE["fetching"]:
-        _LIVE_CACHE["fetching"] = True
-        await _bg_fetch()
-        return _LIVE_CACHE["data"]
-
-    # Trigger async background fetch if cache is older than 5 seconds
+    # On first real call or every 5 seconds, trigger background update without blocking
     if (now - _LIVE_CACHE["time"]) > 5.0 and not _LIVE_CACHE["fetching"]:
         _LIVE_CACHE["fetching"] = True
         asyncio.create_task(_bg_fetch())
