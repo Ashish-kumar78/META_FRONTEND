@@ -7,7 +7,10 @@ import {
 } from 'lucide-react';
 import L from 'leaflet';
 
-const API = import.meta.env.MODE === 'production' ? '' : 'http://localhost:8000';
+// Robust dynamic API URL construction for nested iframes (e.g., Hugging Face Spaces)
+const API = import.meta.env.MODE === 'production' 
+  ? (window.location.pathname === '/' ? '' : window.location.pathname.replace(/\/$/, '')) 
+  : (import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000');
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface Satellite { id: string; battery: number; position: [number,number]; role: string; active: boolean; tasks_completed: number; storage_used: number; }

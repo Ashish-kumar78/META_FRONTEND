@@ -94,9 +94,9 @@ export function Satellites({ selectedSatellite, setSelectedSatellite, onSatellit
   const [satelliteData, setSatelliteData] = React.useState<any[]>([]);
   const positionsRef = useRef<THREE.Vector3[]>([]);
   
-  // In production (HF Spaces), use relative URL so it hits the same-origin backend on port 7860
-  // In development, use the local backend URL
-  const BACKEND_URL = import.meta.env.MODE === 'production' ? '' : (import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000');
+  const BACKEND_URL = import.meta.env.MODE === 'production' 
+    ? (window.location.pathname === '/' ? '' : window.location.pathname.replace(/\/$/, '')) 
+    : (import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000');
 
   // Fetch real satellite data from backend API with auto-refresh
   React.useEffect(() => {
