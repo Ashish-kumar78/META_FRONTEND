@@ -99,5 +99,11 @@ def grade(difficulty: str, final_state: Dict) -> Dict:
     if grader_fn is None:
         raise ValueError(f"Unknown difficulty: {difficulty}")
     result = grader_fn(final_state)
-    assert 0.0 <= result["score"] <= 1.0, "Score must be in [0.0, 1.0]"
+    
+    # Phase 2 Validator requires scores strictly in (0, 1), not inclusive [0, 1]
+    score = result["score"]
+    score = max(0.0001, min(0.9999, score))
+    result["score"] = score
+    
+    assert 0.0 < result["score"] < 1.0, "Score must be strictly in (0.0, 1.0)"
     return result
